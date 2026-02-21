@@ -1,0 +1,158 @@
+{
+  "info": {
+    "name": "Announcements API",
+    "_postman_id": "de8e2194-88e4-49e6-8ad5-20b8ff3f8f15",
+    "description": "Collection for testing announcements backend endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "health"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Categories",
+      "item": [
+        {
+          "name": "Create Category",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "x-admin-secret", "value": "{{adminSecret}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": 1,\n  \"name\": \"City\"\n}"
+            },
+            "url": "{{baseUrl}}/api/categories"
+          }
+        },
+        {
+          "name": "Get Categories",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/categories"
+          }
+        },
+        {
+          "name": "Get Category By Id",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/categories/{{categoryId}}"
+          }
+        },
+        {
+          "name": "Update Category",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "x-admin-secret", "value": "{{adminSecret}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"City Updated\"\n}"
+            },
+            "url": "{{baseUrl}}/api/categories/{{categoryId}}"
+          }
+        },
+        {
+          "name": "Delete Category",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "x-admin-secret", "value": "{{adminSecret}}" }
+            ],
+            "url": "{{baseUrl}}/api/categories/{{categoryId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Announcements",
+      "item": [
+        {
+          "name": "Create Announcement",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "x-admin-secret", "value": "{{adminSecret}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": 1,\n  \"title\": \"Road Closure\",\n  \"description\": \"Main Street closed this weekend.\",\n  \"categoryId\": {{categoryId}},\n  \"publicationDate\": \"2026-03-01T09:00:00.000Z\"\n}"
+            },
+            "url": "{{baseUrl}}/api/announcements"
+          }
+        },
+        {
+          "name": "Get Announcements",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/announcements"
+          }
+        },
+        {
+          "name": "Get Announcement By Id",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/announcements/{{announcementId}}"
+          }
+        },
+        {
+          "name": "Get Announcements By Category",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/announcements/category/{{categoryId}}"
+          }
+        },
+        {
+          "name": "Search Announcements",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/announcements/search?q=city"
+          }
+        },
+        {
+          "name": "Update Announcement",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "x-admin-secret", "value": "{{adminSecret}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Road Closure Updated\",\n  \"description\": \"Main Street closure extended.\",\n  \"categoryId\": {{categoryId}},\n  \"publicationDate\": \"2026-03-02T10:00:00.000Z\"\n}"
+            },
+            "url": "{{baseUrl}}/api/announcements/{{announcementId}}"
+          }
+        },
+        {
+          "name": "Delete Announcement",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "x-admin-secret", "value": "{{adminSecret}}" }
+            ],
+            "url": "{{baseUrl}}/api/announcements/{{announcementId}}"
+          }
+        }
+      ]
+    }
+  ]
+}
