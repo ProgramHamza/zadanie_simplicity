@@ -4,15 +4,11 @@ import { asyncHandler } from '../utils/asyncHandler.js'
 import { broadcastAnnouncementCreated } from '../websocket/wsServer.js'
 
 export const createAnnouncement = asyncHandler(async (req: Request, res: Response) => {
-  const categoryIds = Array.isArray(req.body.categoryIds)
-    ? req.body.categoryIds.map((value: unknown) => Number(value))
-    : [Number(req.body.categoryId)]
-
   const announcement = await AnnouncementService.create({
     id: Number(req.body.id),
     title: String(req.body.title),
     description: String(req.body.description),
-    categoryIds,
+    categoryId: Number(req.body.categoryId),
     publicationDate: new Date(String(req.body.publicationDate)),
   })
 
@@ -42,14 +38,10 @@ export const searchAnnouncements = asyncHandler(async (req: Request, res: Respon
 })
 
 export const updateAnnouncement = asyncHandler(async (req: Request, res: Response) => {
-  const categoryIds = Array.isArray(req.body.categoryIds)
-    ? req.body.categoryIds.map((value: unknown) => Number(value))
-    : [Number(req.body.categoryId)]
-
   const announcement = await AnnouncementService.update(Number(req.params.id), {
     title: String(req.body.title),
     description: String(req.body.description),
-    categoryIds,
+    categoryId: Number(req.body.categoryId),
     publicationDate: new Date(String(req.body.publicationDate)),
   })
 

@@ -5,45 +5,39 @@ export type CreateAnnouncementInput = {
   id: number
   title: string
   description: string
-  categoryIds: number[]
+  categoryId: number
   publicationDate: Date
 }
 
 export type UpdateAnnouncementInput = {
   title: string
   description: string
-  categoryIds: number[]
+  categoryId: number
   publicationDate: Date
 }
 
 export class AnnouncementService {
   static async create(data: CreateAnnouncementInput) {
-    const categories = await prisma.category.findMany({ where: { id: { in: data.categoryIds } } })
+    const category = await prisma.category.findUnique({ where: { id: data.categoryId } })
 
-    if (categories.length !== data.categoryIds.length) {
+    if (!category) {
       throw new AppError('Category does not exist', 400)
     }
 
     return prisma.announcement.create({
       data: {
-        id: data.id,
-        title: data.title,
-        description: data.description,
-        publicationDate: data.publicationDate,
-        categories: {
-          connect: data.categoryIds.map((categoryId) => ({ id: categoryId })),
-        },
+        ...data,
         lastUpdate: new Date(),
       },
       include: {
-        categories: true,
+        category: true,
       },
     })
   }
 
   static async findAll() {
     return prisma.announcement.findMany({
-      include: { categories: true },
+      include: { category: true },
       orderBy: { id: 'asc' },
     })
   }
@@ -51,7 +45,7 @@ export class AnnouncementService {
   static async findById(id: number) {
     const announcement = await prisma.announcement.findUnique({
       where: { id },
-      include: { categories: true },
+      include: { category: true },
     })
 
     if (!announcement) {
@@ -63,8 +57,8 @@ export class AnnouncementService {
 
   static async findByCategory(categoryId: number) {
     return prisma.announcement.findMany({
-      where: { categories: { some: { id: categoryId } } },
-      include: { categories: true },
+      where: { categoryId },
+      include: { category: true },
       orderBy: { id: 'asc' },
     })
   }
@@ -73,12 +67,12 @@ export class AnnouncementService {
     return prisma.announcement.findMany({
       where: {
         OR: [
-          { title: { contains: query } },
-          { description: { contains: query } },
-          { categories: { some: { name: { contains: query } } } },
+          { title: { contains: query, mode: 'insensitive' } },
+          { description: { contains: query, mode: 'insensitive' } },
+          { category: { name: { contains: query, mode: 'insensitive' } } },
         ],
       },
-      include: { categories: true },
+      include: { category: true },
       orderBy: { id: 'asc' },
     })
   }
@@ -86,24 +80,19 @@ export class AnnouncementService {
   static async update(id: number, data: UpdateAnnouncementInput) {
     await this.findById(id)
 
-    const categories = await prisma.category.findMany({ where: { id: { in: data.categoryIds } } })
-    if (categories.length !== data.categoryIds.length) {
+    const category = await prisma.category.findUnique({ where: { id: data.categoryId } })
+    if (!category) {
       throw new AppError('Category does not exist', 400)
     }
 
     return prisma.announcement.update({
       where: { id },
       data: {
-        title: data.title,
-        description: data.description,
-        publicationDate: data.publicationDate,
-        categories: {
-          set: data.categoryIds.map((categoryId) => ({ id: categoryId })),
-        },
+        ...data,
         lastUpdate: new Date(),
       },
       include: {
-        categories: true,
+        category: true,
       },
     })
   }

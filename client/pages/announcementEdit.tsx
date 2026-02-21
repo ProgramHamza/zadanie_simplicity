@@ -158,7 +158,6 @@ export default function AnnouncementEditPage({ id }: AnnouncementEditPageProps) 
   const parsedId = Number(id)
   const selectedAnnouncement = announcements.find((item) => item.id === parsedId)
   const initialCategories = toCategoryLabel(selectedAnnouncement?.categories ?? 'City')
-
   const [title, setTitle] = useState(selectedAnnouncement?.title ?? '')
   const [content, setContent] = useState('dasda')
   const [selectedCategories, setSelectedCategories] = useState<string[]>(
@@ -171,7 +170,6 @@ export default function AnnouncementEditPage({ id }: AnnouncementEditPageProps) 
   const [publicationDateError, setPublicationDateError] = useState('')
   const [publishError, setPublishError] = useState('')
   const [isPublishing, setIsPublishing] = useState(false)
-
   const categorySelectRef = useRef<HTMLDivElement | null>(null)
   const categoryInputRef = useRef<HTMLInputElement | null>(null)
 
@@ -190,9 +188,9 @@ export default function AnnouncementEditPage({ id }: AnnouncementEditPageProps) 
         }
 
         const data = await response.json() as CategoryRecord[]
-        setCategoryRecords(data)
-      } catch {
-        // Keep fallback categories when API is unavailable.
+        const selectedAnnouncement = announcements.find((item) => item.id === parsedId)
+        const initialCategories = toCategoryLabel(selectedAnnouncement?.categories ?? 'City')
+        const [title, setTitle] = useState(selectedAnnouncement?.title ?? '')
       }
     }
 
@@ -223,7 +221,7 @@ export default function AnnouncementEditPage({ id }: AnnouncementEditPageProps) 
 
   const availableCategories = useMemo(
     () => categoryOptions.filter((option) => !selectedCategories.includes(option)),
-    [categoryOptions, selectedCategories],
+    [selectedCategories],
   )
 
   const filteredCategories = useMemo(() => {
@@ -272,29 +270,44 @@ export default function AnnouncementEditPage({ id }: AnnouncementEditPageProps) 
     const apiBaseUrl = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:4001'
     const adminSecret = (import.meta.env.VITE_ADMIN_SECRET as string | undefined) ?? 'change-me-admin-secret'
 
+            const isExistingAnnouncement = Number.isInteger(parsedId)
+              && parsedId > 0
+              && announcementData.some((item) => item.id === parsedId)
     setIsPublishing(true)
 
     try {
-      const selectedCategoryIds = selectedCategories
-        .map((selectedCategoryName) => categoryRecords.find((category) => category.name === selectedCategoryName)?.id)
-        .filter((categoryId): categoryId is number => Number.isInteger(categoryId))
+      const selectedCategoryName = selectedCategories[0]
+      const matchedCategory = categoryRecords.find((category) => category.name === selectedCategoryName)
+            const requestUrl = isExistingAnnouncement
+              ? `${apiBaseUrl}/api/announcements/${parsedId}`
+              : `${apiBaseUrl}/api/announcements`
 
-      if (selectedCategoryIds.length !== selectedCategories.length) {
-        throw new Error('One or more selected categories are not available in database. Run seed:mock first.')
+            const requestMethod = isExistingAnnouncement ? 'PUT' : 'POST'
+      if (!matchedCategory) {
+            const requestBody: {
+              id?: number
+              title: string
+              description: string
+              categoryId: number
+              publicationDate: string
+            } = {
+              title: title.trim(),
+              description: content.trim(),
+              categoryId: matchedCategory.id,
+              publicationDate: parsedDate.toISOString(),
+            }
+        throw new Error('Selected category is not available in database. Run seed:mock first.')
+            if (!isExistingAnnouncement) {
+              requestBody.id = nextId
+            }
       }
-
-      const announcementsResponse = await fetch(`${apiBaseUrl}/api/announcements`)
+            const createResponse = await fetch(requestUrl, {
+              method: requestMethod,
       if (!announcementsResponse.ok) {
         throw new Error('Cannot load announcements from API')
       }
 
-      const announcementData = await announcementsResponse.json() as Array<{ id: number }>
-      const isExistingAnnouncement = Number.isInteger(parsedId)
-        && parsedId > 0
-        && announcementData.some((item) => item.id === parsedId)
-
-      const nextId = announcementData.length > 0
-        ? Math.max(...announcementData.map((item) => item.id)) + 1
+              body: JSON.stringify(requestBody),
         : 1
 
       const requestUrl = isExistingAnnouncement
@@ -307,12 +320,12 @@ export default function AnnouncementEditPage({ id }: AnnouncementEditPageProps) 
         id?: number
         title: string
         description: string
-        categoryIds: number[]
+        categoryId: number
         publicationDate: string
       } = {
         title: title.trim(),
         description: content.trim(),
-        categoryIds: selectedCategoryIds,
+        categoryId: matchedCategory.id,
         publicationDate: parsedDate.toISOString(),
       }
 

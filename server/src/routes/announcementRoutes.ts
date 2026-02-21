@@ -42,14 +42,7 @@ announcementRouter.post('/',
     body('id').isInt({ min: 1 }),
     body('title').isString().trim().notEmpty(),
     body('description').isString().trim().notEmpty(),
-    body().custom((_, { req }) => {
-      const hasCategoryIds = Array.isArray(req.body.categoryIds) && req.body.categoryIds.length > 0
-      const hasCategoryId = Number.isInteger(Number(req.body.categoryId)) && Number(req.body.categoryId) > 0
-      return hasCategoryIds || hasCategoryId
-    }),
-    body('categoryIds').optional().isArray({ min: 1 }),
-    body('categoryIds.*').optional().isInt({ min: 1 }),
-    body('categoryId').optional().isInt({ min: 1 }),
+    body('categoryId').isInt({ min: 1 }),
     body('publicationDate').custom(dateValidator),
   ],
   validateRequest,
@@ -62,14 +55,7 @@ announcementRouter.put('/:id',
     param('id').isInt({ min: 1 }),
     body('title').isString().trim().notEmpty(),
     body('description').isString().trim().notEmpty(),
-    body().custom((_, { req }) => {
-      const hasCategoryIds = Array.isArray(req.body.categoryIds) && req.body.categoryIds.length > 0
-      const hasCategoryId = Number.isInteger(Number(req.body.categoryId)) && Number(req.body.categoryId) > 0
-      return hasCategoryIds || hasCategoryId
-    }),
-    body('categoryIds').optional().isArray({ min: 1 }),
-    body('categoryIds.*').optional().isInt({ min: 1 }),
-    body('categoryId').optional().isInt({ min: 1 }),
+    body('categoryId').isInt({ min: 1 }),
     body('publicationDate').custom(dateValidator),
   ],
   validateRequest,

@@ -14,5 +14,5 @@ export const env = {
   DATABASE_URL: process.env.DATABASE_URL as string,
   CLIENT_URL: process.env.CLIENT_URL as string,
   ADMIN_SECRET: process.env.ADMIN_SECRET as string,
-  PORT: Number(process.env.PORT ?? 4001),
+  PORT: Number(process.env.PORT ?? 4000),
 }

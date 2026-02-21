@@ -5,15 +5,13 @@
   "main": "dist/server.js",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/server.ts",
+    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "devStart": "nodemon dist/server.js",
-    "prestart": "npm run prisma:push && npm run build",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
-    "prisma:generate": "npx prisma generate",
+    "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:push": "prisma db push",
-    "seed:mock": "tsx prisma/seed.ts"
+    "prisma:push": "prisma db push"
   },
   "keywords": [
     "express",
@@ -40,7 +38,6 @@
     "@types/node": "^22.10.6",
     "@types/ws": "^8.5.13",
     "prisma": "^6.2.1",
-    "tsx": "^4.19.2",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.7.3"
   }
