@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { announcements } from './announcements'
 
 type AnnouncementEditPageProps = {
   id: string
@@ -10,16 +9,16 @@ type CategoryRecord = {
   name: string
 }
 
-const fallbackCategoryOptions = [
-  'City',
-  'Health',
-  'Community events',
-  'Crime & Safety',
-  'Culture',
-  'Discounts & Benefits',
-  'Emergencies',
-  'For Seniors',
-  'Kids & Family',
+const fallbackCategoryRecords: CategoryRecord[] = [
+  { id: 1, name: 'City' },
+  { id: 2, name: 'Health' },
+  { id: 3, name: 'Community events' },
+  { id: 4, name: 'Crime & Safety' },
+  { id: 5, name: 'Culture' },
+  { id: 6, name: 'Discounts & Benefits' },
+  { id: 7, name: 'Emergencies' },
+  { id: 8, name: 'For Seniors' },
+  { id: 9, name: 'Kids & Family' },
 ]
 
 function fuzzyScore(option: string, query: string) {
@@ -103,13 +102,6 @@ function fuzzyScore(option: string, query: string) {
   return 1000 - Math.min(byWordDistance, byPhraseDistance) * 90 + startsWithBonus
 }
 
-function toCategoryLabel(value: string) {
-  return value
-    .split(',')
-    .map((part) => part.trim())
-    .filter(Boolean)
-}
-
 function parsePublicationDate(value: string) {
   const match = value.match(/^(0[1-9]|1[0-2])\/(0[1-9]|[12]\d|3[01])\/(\d{4})\s([01]\d|2[0-3]):([0-5]\d)$/)
   if (!match) {
@@ -154,19 +146,42 @@ function getPublicationDateError(value: string) {
   return ''
 }
 
+function toPublicationInputValue(value: string) {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) {
+    return '08/10/2023 08:55'
+  }
+
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const year = String(date.getFullYear())
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+
+  return `${month}/${day}/${year} ${hours}:${minutes}`
+}
+
+type ApiAnnouncementDetail = {
+  id: number
+  title: string
+  description: string
+  publicationDate: string
+  categories: Array<{
+    id: number
+    name: string
+  }>
+}
+
 export default function AnnouncementEditPage({ id }: AnnouncementEditPageProps) {
   const parsedId = Number(id)
-  const selectedAnnouncement = announcements.find((item) => item.id === parsedId)
-  const initialCategories = toCategoryLabel(selectedAnnouncement?.categories ?? 'City')
-  const [title, setTitle] = useState(selectedAnnouncement?.title ?? '')
-  const [content, setContent] = useState('dasda')
-  const [selectedCategories, setSelectedCategories] = useState<string[]>(
-    initialCategories.length > 0 ? initialCategories : ['City'],
-  )
+  const [title, setTitle] = useState('')
+  const [content, setContent] = useState('')
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [categoryRecords, setCategoryRecords] = useState<CategoryRecord[]>([])
   const [categoryQuery, setCategoryQuery] = useState('')
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false)
-  const [publicationDate, setPublicationDate] = useState('08/10/2023 08:55')
+  const [publicationDate, setPublicationDate] = useState(() => toPublicationInputValue(new Date().toISOString()))
+  const [categoryError, setCategoryError] = useState('')
   const [publicationDateError, setPublicationDateError] = useState('')
   const [publishError, setPublishError] = useState('')
   const [isPublishing, setIsPublishing] = useState(false)
@@ -188,9 +203,9 @@ export default function AnnouncementEditPage({ id }: AnnouncementEditPageProps) 
         }
 
         const data = await response.json() as CategoryRecord[]
-        const selectedAnnouncement = announcements.find((item) => item.id === parsedId)
-        const initialCategories = toCategoryLabel(selectedAnnouncement?.categories ?? 'City')
-        const [title, setTitle] = useState(selectedAnnouncement?.title ?? '')
+        setCategoryRecords(data)
+      } catch {
+        // Keep fallback categories when API is unavailable.
       }
     }
 
@@ -200,6 +215,45 @@ export default function AnnouncementEditPage({ id }: AnnouncementEditPageProps) 
       controller.abort()
     }
   }, [])
+
+  useEffect(() => {
+    const controller = new AbortController()
+    const apiBaseUrl = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:4001'
+
+    if (!Number.isInteger(parsedId) || parsedId <= 0) {
+      return () => {
+        controller.abort()
+      }
+    }
+
+    const loadAnnouncement = async () => {
+      try {
+        const response = await fetch(`${apiBaseUrl}/api/announcements/${parsedId}`, {
+          signal: controller.signal,
+        })
+
+        if (!response.ok) {
+          return
+        }
+
+        const data = await response.json() as ApiAnnouncementDetail
+        setTitle(data.title ?? '')
+        setContent(data.description ?? '')
+        setPublicationDate(toPublicationInputValue(data.publicationDate))
+
+        const categoryNames = data.categories?.map((category) => category.name).filter(Boolean) ?? []
+        setSelectedCategories(categoryNames)
+      } catch {
+        // Keep editable defaults when API announcement lookup is unavailable.
+      }
+    }
+
+    void loadAnnouncement()
+
+    return () => {
+      controller.abort()
+    }
+  }, [parsedId])
 
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
@@ -215,13 +269,13 @@ export default function AnnouncementEditPage({ id }: AnnouncementEditPageProps) 
   }, [])
 
   const categoryOptions = useMemo(
-    () => (categoryRecords.length > 0 ? categoryRecords.map((item) => item.name) : fallbackCategoryOptions),
+    () => (categoryRecords.length > 0 ? categoryRecords.map((item) => item.name) : fallbackCategoryRecords.map((item) => item.name)),
     [categoryRecords],
   )
 
   const availableCategories = useMemo(
     () => categoryOptions.filter((option) => !selectedCategories.includes(option)),
-    [selectedCategories],
+    [categoryOptions, selectedCategories],
   )
 
   const filteredCategories = useMemo(() => {
@@ -238,12 +292,24 @@ export default function AnnouncementEditPage({ id }: AnnouncementEditPageProps) 
 
   const removeCategory = (category: string) => {
     setSelectedCategories((previous) => previous.filter((item) => item !== category))
+    if (categoryError) {
+      setCategoryError('')
+    }
+    if (publishError) {
+      setPublishError('')
+    }
   }
 
   const addCategory = (category: string) => {
     setSelectedCategories((previous) => [...previous, category])
     setCategoryQuery('')
     setIsCategoryDropdownOpen(true)
+    if (categoryError) {
+      setCategoryError('')
+    }
+    if (publishError) {
+      setPublishError('')
+    }
     categoryInputRef.current?.focus()
   }
 
@@ -254,12 +320,27 @@ export default function AnnouncementEditPage({ id }: AnnouncementEditPageProps) 
       return
     }
 
-    if (!title.trim() || !content.trim()) {
-      setPublishError('Title and content are required')
+    const missingFields: string[] = []
+    if (!title.trim()) {
+      missingFields.push('title')
+    }
+    if (!content.trim()) {
+      missingFields.push('content')
+    }
+
+    if (missingFields.length > 0) {
+      setPublishError(`Please fill required field(s): ${missingFields.join(', ')}`)
+      return
+    }
+
+    if (selectedCategories.length === 0) {
+      setCategoryError('Select at least one category')
+      setPublishError('Category is required')
       return
     }
 
     setPublishError('')
+    setCategoryError('')
 
     const parsedDate = parsePublicationDate(publicationDate)
     if (!parsedDate) {
@@ -268,46 +349,33 @@ export default function AnnouncementEditPage({ id }: AnnouncementEditPageProps) 
     }
 
     const apiBaseUrl = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:4001'
-    const adminSecret = (import.meta.env.VITE_ADMIN_SECRET as string | undefined) ?? 'change-me-admin-secret'
+    const adminSecret = import.meta.env.VITE_ADMIN_SECRET as string | undefined
 
-            const isExistingAnnouncement = Number.isInteger(parsedId)
-              && parsedId > 0
-              && announcementData.some((item) => item.id === parsedId)
     setIsPublishing(true)
 
     try {
-      const selectedCategoryName = selectedCategories[0]
-      const matchedCategory = categoryRecords.find((category) => category.name === selectedCategoryName)
-            const requestUrl = isExistingAnnouncement
-              ? `${apiBaseUrl}/api/announcements/${parsedId}`
-              : `${apiBaseUrl}/api/announcements`
+      const categoriesSource = categoryRecords.length > 0 ? categoryRecords : fallbackCategoryRecords
 
-            const requestMethod = isExistingAnnouncement ? 'PUT' : 'POST'
-      if (!matchedCategory) {
-            const requestBody: {
-              id?: number
-              title: string
-              description: string
-              categoryId: number
-              publicationDate: string
-            } = {
-              title: title.trim(),
-              description: content.trim(),
-              categoryId: matchedCategory.id,
-              publicationDate: parsedDate.toISOString(),
-            }
-        throw new Error('Selected category is not available in database. Run seed:mock first.')
-            if (!isExistingAnnouncement) {
-              requestBody.id = nextId
-            }
+      const selectedCategoryIds = selectedCategories
+        .map((selectedCategoryName) => categoriesSource.find((category) => category.name === selectedCategoryName)?.id)
+        .filter((categoryId): categoryId is number => Number.isInteger(categoryId))
+
+      if (selectedCategoryIds.length !== selectedCategories.length) {
+        throw new Error('One or more selected categories are invalid. Please reselect categories and try again.')
       }
-            const createResponse = await fetch(requestUrl, {
-              method: requestMethod,
+
+      const announcementsResponse = await fetch(`${apiBaseUrl}/api/announcements`)
       if (!announcementsResponse.ok) {
         throw new Error('Cannot load announcements from API')
       }
 
-              body: JSON.stringify(requestBody),
+      const announcementData = await announcementsResponse.json() as Array<{ id: number }>
+      const isExistingAnnouncement = Number.isInteger(parsedId)
+        && parsedId > 0
+        && announcementData.some((item) => item.id === parsedId)
+
+      const nextId = announcementData.length > 0
+        ? Math.max(...announcementData.map((item) => item.id)) + 1
         : 1
 
       const requestUrl = isExistingAnnouncement
@@ -320,12 +388,12 @@ export default function AnnouncementEditPage({ id }: AnnouncementEditPageProps) 
         id?: number
         title: string
         description: string
-        categoryId: number
+        categoryIds: number[]
         publicationDate: string
       } = {
         title: title.trim(),
         description: content.trim(),
-        categoryId: matchedCategory.id,
+        categoryIds: selectedCategoryIds,
         publicationDate: parsedDate.toISOString(),
       }
 
@@ -337,7 +405,7 @@ export default function AnnouncementEditPage({ id }: AnnouncementEditPageProps) 
         method: requestMethod,
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-secret': adminSecret,
+          ...(adminSecret ? { 'x-admin-secret': adminSecret } : {}),
         },
         body: JSON.stringify(requestBody),
       })
@@ -445,6 +513,12 @@ export default function AnnouncementEditPage({ id }: AnnouncementEditPageProps) 
                   onChange={(event) => {
                     setCategoryQuery(event.target.value)
                     setIsCategoryDropdownOpen(true)
+                    if (categoryError) {
+                      setCategoryError('')
+                    }
+                    if (publishError) {
+                      setPublishError('')
+                    }
                   }}
                   placeholder="Type to search categories"
                 />
@@ -477,6 +551,7 @@ export default function AnnouncementEditPage({ id }: AnnouncementEditPageProps) 
                 </div>
               )}
             </div>
+            {categoryError && <p className="field-error">{categoryError}</p>}
 
             <label htmlFor="announcement-date" className="spaced-label">Publication date</label>
             <input

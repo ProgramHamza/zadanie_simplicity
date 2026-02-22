@@ -84,6 +84,38 @@
   color: #212529;
 }
 
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.create-announcement-button {
+  text-decoration: none;
+  border: 1px solid #d6dbe0;
+  border-radius: 8px;
+  background: #f5f6f7;
+  color: #2f353b;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 14px;
+}
+
+.create-announcement-button:hover {
+  background: #eceeef;
+}
+
+.ws-notification {
+  margin: 16px 0 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #e8f5ef;
+  color: #246845;
+  font-size: 14px;
+  font-weight: 600;
+}
+
 .table-wrapper {
   margin-top: 58px;
   border-top: 1px solid #e4e6e8;

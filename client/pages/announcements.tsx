@@ -65,10 +65,17 @@ function formatDate(value: string, withTime = false) {
 
 export default function AnnouncementsPage() {
   const [items, setItems] = useState<Announcement[]>(announcements)
+  const [notification, setNotification] = useState('')
 
   useEffect(() => {
     const controller = new AbortController()
     const apiBaseUrl = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:4001'
+    const wsUrl = apiBaseUrl.startsWith('https://')
+      ? apiBaseUrl.replace('https://', 'wss://')
+      : apiBaseUrl.replace('http://', 'ws://')
+
+    let notificationTimer: number | undefined
+    let socket: WebSocket | null = null
 
     const loadAnnouncements = async () => {
       try {
@@ -77,7 +84,7 @@ export default function AnnouncementsPage() {
         })
 
         if (!response.ok) {
-          return
+          return false
         }
 
         const data = await response.json() as ApiAnnouncement[]
@@ -90,15 +97,53 @@ export default function AnnouncementsPage() {
         }))
 
         setItems(mapped)
+        return true
       } catch {
         // Keep fallback mock data when API is unavailable.
+        return false
       }
     }
 
-    void loadAnnouncements()
+    const initializeRealtime = async () => {
+      const hasApiConnection = await loadAnnouncements()
+      if (!hasApiConnection) {
+        return
+      }
+
+      socket = new WebSocket(`${wsUrl}/ws`)
+      socket.onmessage = (event) => {
+        try {
+          const payload = JSON.parse(event.data) as { event?: string, data?: { title?: string } }
+          if (payload.event !== 'announcement.created') {
+            return
+          }
+
+          const messageTitle = payload.data?.title?.trim() || 'A new announcement'
+          setNotification(`${messageTitle} was published`)
+
+          if (notificationTimer) {
+            window.clearTimeout(notificationTimer)
+          }
+
+          notificationTimer = window.setTimeout(() => {
+            setNotification('')
+          }, 4000)
+
+          void loadAnnouncements()
+        } catch {
+          // Ignore malformed websocket payloads.
+        }
+      }
+    }
+
+    void initializeRealtime()
 
     return () => {
       controller.abort()
+      socket?.close()
+      if (notificationTimer) {
+        window.clearTimeout(notificationTimer)
+      }
     }
   }, [])
 
@@ -120,7 +165,12 @@ export default function AnnouncementsPage() {
       <main className="content">
         <div className="top-strip" />
         <section className="panel">
-          <h1>Announcements</h1>
+          <div className="panel-header">
+            <h1>Announcements</h1>
+            <a href="/announcements/new" className="create-announcement-button">Create new announcement</a>
+          </div>
+
+          {notification && <p className="ws-notification">{notification}</p>}
 
           <div className="table-wrapper">
             <table>

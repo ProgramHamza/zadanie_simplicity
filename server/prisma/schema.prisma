@@ -5,6 +5,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model Category {
@@ -19,10 +20,9 @@ model Announcement {
   id              Int      @id
   title           String
   description     String
-  categoryId      Int      @map("category_id")
   publicationDate DateTime @map("publication_date")
   lastUpdate      DateTime @map("last_update")
-  category        Category @relation(fields: [categoryId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  categories      Category[]
 
   @@map("announcements")
 }

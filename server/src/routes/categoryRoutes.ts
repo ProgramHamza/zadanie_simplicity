@@ -7,7 +7,6 @@ import {
   getCategoryById,
   updateCategory,
 } from '../controllers/categoryController.js'
-import { requireAdminSecret } from '../middlewares/requireAdminSecret.js'
 import { validateRequest } from '../middlewares/validateRequest.js'
 
 export const categoryRouter = Router()
@@ -20,7 +19,6 @@ categoryRouter.get('/:id',
 )
 
 categoryRouter.post('/',
-  requireAdminSecret,
   [
     body('id').isInt({ min: 1 }),
     body('name').isString().trim().notEmpty(),
@@ -30,7 +28,6 @@ categoryRouter.post('/',
 )
 
 categoryRouter.put('/:id',
-  requireAdminSecret,
   [
     param('id').isInt({ min: 1 }),
     body('name').isString().trim().notEmpty(),
@@ -40,7 +37,6 @@ categoryRouter.put('/:id',
 )
 
 categoryRouter.delete('/:id',
-  requireAdminSecret,
   [param('id').isInt({ min: 1 })],
   validateRequest,
   deleteCategory,
