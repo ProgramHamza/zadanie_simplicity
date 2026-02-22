@@ -4,8 +4,10 @@ import AnnouncementEditPage from './pages/announcementEdit'
 
 function App() {
   const pathname = window.location.pathname
-  const isAnnouncementsPath = pathname === '/announcements' || pathname === '/annoucements'
-  const editPathMatch = pathname.match(/^\/announcements\/([^/]+)$/) ?? pathname.match(/^\/annoucements\/([^/]+)$/)
+  const isAnnouncementsPath = pathname === '/announcements' || pathname === '/annoucements' || pathname === '/announcement'
+  const editPathMatch = pathname.match(/^\/announcements\/([^/]+)$/)
+    ?? pathname.match(/^\/annoucements\/([^/]+)$/)
+    ?? pathname.match(/^\/announcement\/([^/]+)$/)
 
   if (editPathMatch) {
     return <AnnouncementEditPage id={decodeURIComponent(editPathMatch[1])} />
