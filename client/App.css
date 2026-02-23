@@ -93,6 +93,123 @@
   gap: 16px;
 }
 
+.announcement-filters {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: minmax(320px, 1fr) minmax(240px, 360px);
+  gap: 12px;
+  align-items: center;
+}
+
+.announcement-search-input,
+.announcement-category-filter {
+  height: 42px;
+  border: 1px solid #d6dbe0;
+  border-radius: 8px;
+  background: #f5f6f7;
+  color: #2f353b;
+  font-size: 14px;
+  padding: 0 12px;
+}
+
+.announcement-category-select {
+  width: 100%;
+  grid-column: 1 / -1;
+}
+
+.announcement-category-select .announcement-category-field {
+  width: 100%;
+  height: auto;
+  min-height: 42px;
+  border-radius: 8px;
+  padding: 4px 10px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  overflow-x: hidden;
+}
+
+.announcement-category-select .category-chip {
+  font-size: 13px;
+  padding: 4px 8px;
+}
+
+.announcement-category-select .category-input {
+  font-size: 14px;
+  min-width: 120px;
+}
+
+.announcement-category-select .category-option {
+  font-size: 14px;
+  padding: 10px 14px;
+}
+
+.announcement-empty-category {
+  margin: 6px 14px;
+  color: #68707a;
+  font-size: 13px;
+}
+
+.announcement-search-input {
+  height: 42px;
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 220px;
+  padding: 0 12px;
+}
+
+.announcement-sort-select {
+  height: 42px;
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #d6dbe0;
+  border-radius: 8px;
+  background: #f5f6f7;
+  color: #2f353b;
+  font-size: 14px;
+  padding: 0 12px;
+}
+
+.announcement-category-filter {
+  width: 280px;
+  padding: 10px 12px;
+  box-sizing: border-box;
+}
+
+.announcement-category-filter-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.announcement-category-clear {
+  border: none;
+  background: transparent;
+  color: #356ad9;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.announcement-category-list {
+  margin-top: 8px;
+  max-height: 124px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.announcement-category-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #2f353b;
+}
+
 .create-announcement-button {
   text-decoration: none;
   border: 1px solid #d6dbe0;

@@ -125,6 +125,62 @@ This keeps writes and reads simple through REST while still delivering real-time
 - WebSocket endpoint: `/ws`
 - Example event: `announcement.created`
 
+## API Testing (Postman)
+
+Quick way to validate backend behavior from Postman:
+
+1. Create a Postman environment with:
+   - `baseUrl` = `http://localhost:4001` (local) or `https://zadanie-simplicity.render.com` (deployed)
+2. Add a collection and set `{{baseUrl}}` as the URL prefix.
+3. For `POST` / `PUT` requests, set header:
+   - `Content-Type: application/json`
+
+Suggested test flow:
+
+1. **Health check**
+   - `GET {{baseUrl}}/health`
+   - Expected: `200 OK` and `{ "status": "ok" }`
+
+2. **Read categories**
+   - `GET {{baseUrl}}/api/categories`
+   - Expected: `200 OK` and category array
+
+3. **Create announcement**
+   - `POST {{baseUrl}}/api/announcements`
+   - Body (raw JSON):
+
+```json
+{
+  "id": 9999,
+  "title": "Postman test announcement",
+  "description": "Created from Postman",
+  "categoryIds": [1],
+  "publicationDate": "2026-02-23T10:00:00.000Z"
+}
+```
+
+4. **Update announcement**
+   - `PUT {{baseUrl}}/api/announcements/9999`
+   - Body (raw JSON):
+
+```json
+{
+  "title": "Updated in Postman",
+  "description": "Updated content",
+  "categoryIds": [1],
+  "publicationDate": "2026-02-23T11:00:00.000Z"
+}
+```
+
+5. **Search announcements**
+   - `GET {{baseUrl}}/api/announcements/search?q=postman`
+
+6. **Delete announcement**
+   - `DELETE {{baseUrl}}/api/announcements/9999`
+   - Expected: `204 No Content`
+
+If validation fails, the API returns `400` with error details from request validation.
+
 ## Security and Validation
 
 Implemented protections include:
@@ -375,6 +431,62 @@ Týmto spôsobom ostáva backend jednoduchý a zároveň poskytuje real-time UX 
 
 - WebSocket endpoint: `/ws`
 - Príklad eventu: `announcement.created`
+
+## Testovanie API cez Postman
+
+Najrýchlejší spôsob, ako overiť správanie backendu cez Postman:
+
+1. Vytvor si Postman environment s premennou:
+   - `baseUrl` = `http://localhost:4001` (lokálne) alebo `https://zadanie-simplicity.render.com` (deploy)
+2. Vytvor kolekciu a v requestoch používaj prefix `{{baseUrl}}`.
+3. Pre `POST` / `PUT` nastav hlavičku:
+   - `Content-Type: application/json`
+
+Odporúčaný testovací postup:
+
+1. **Health check**
+   - `GET {{baseUrl}}/health`
+   - Očakávané: `200 OK` a `{ "status": "ok" }`
+
+2. **Načítanie kategórií**
+   - `GET {{baseUrl}}/api/categories`
+   - Očakávané: `200 OK` a pole kategórií
+
+3. **Vytvorenie oznamu**
+   - `POST {{baseUrl}}/api/announcements`
+   - Body (raw JSON):
+
+```json
+{
+  "id": 9999,
+  "title": "Postman test announcement",
+  "description": "Created from Postman",
+  "categoryIds": [1],
+  "publicationDate": "2026-02-23T10:00:00.000Z"
+}
+```
+
+4. **Úprava oznamu**
+   - `PUT {{baseUrl}}/api/announcements/9999`
+   - Body (raw JSON):
+
+```json
+{
+  "title": "Updated in Postman",
+  "description": "Updated content",
+  "categoryIds": [1],
+  "publicationDate": "2026-02-23T11:00:00.000Z"
+}
+```
+
+5. **Vyhľadanie oznamov**
+   - `GET {{baseUrl}}/api/announcements/search?q=postman`
+
+6. **Zmazanie oznamu**
+   - `DELETE {{baseUrl}}/api/announcements/9999`
+   - Očakávané: `204 No Content`
+
+Ak validácia requestu zlyhá, API vráti `400` s detailmi validačných chýb.
 
 ## Bezpečnosť a validácia
 
