@@ -6,7 +6,7 @@ Full-stack web application for creating, editing, searching, filtering, and publ
 
 - Frontend: https://zadanie-simplicity.vercel.app
 - Backend API: https://zadanie-simplicity.render.com
-- Database: Supabase PostgreSQL
+- Database: https://supabase.com/dashboard/project/ywyjcfchdsoqdoqakpuq
 
 ## Project Goals
 
@@ -202,7 +202,7 @@ Implemented protections include:
 ## 2) Clone and install dependencies
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/ProgramHamza/zadanie_simplicity
 cd zadanie_simplicity
 npm install
 npm --prefix server install
@@ -509,7 +509,7 @@ Použité ochranné prvky zahŕňajú:
 ## 2) Klonovanie a inštalácia závislostí
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/ProgramHamza/zadanie_simplicity
 cd zadanie_simplicity
 npm install
 npm --prefix server install
