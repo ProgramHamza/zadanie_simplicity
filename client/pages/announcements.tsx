@@ -154,12 +154,10 @@ export default function AnnouncementsPage() {
           <div className="city-avatar" aria-hidden="true">🏙️</div>
           <span>Test city</span>
         </div>
-        <button className="sidebar-item active" type="button">
-          <svg viewBox="0 0 24 24" aria-hidden="true" className="sidebar-icon">
-            <path d="M3 10.5v3h3.2l4.7 3.2v-9.4L6.2 10.5H3Zm9.4-1.7v6.4c2.2-.3 3.9-2.2 3.9-4.5s-1.7-4.2-3.9-4.5Z" />
-          </svg>
+        <a className="sidebar-item active" href="/announcements">
+          <img src="/ikonanouncement.png" alt="" aria-hidden="true" className="sidebar-icon" />
           <span>Announcements</span>
-        </button>
+        </a>
       </aside>
 
       <main className="content">

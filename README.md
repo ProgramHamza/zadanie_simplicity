@@ -1,73 +1,149 @@
-# React + TypeScript + Vite
+# Systém na správu oznamov
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Full-stack appka na oznamy... vytváranie, edit, filtrovanie a pod.
 
-Currently, two official plugins are available:
+## Produkčné prostredia
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Frontend: https://zadanie-simplicity.vercel.app
+- Backend API: https://zadanie-simplicity.render.com
+- Databáza: Supabase PostgreSQL
+- (príp. local env podľa potreby)
 
-## React Compiler
+## Ciele projektu
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Projekt bol implementovaný cca v 72h, focus bol hlavne na:
 
-## Expanding the ESLint configuration
+- korektnú a stabilnú CRUD logiku,
+- backend architektúru (layers...)
+- filtrovanie / search,
+- bezpečnosť (`helmet`, `cors`, validácie),
+- realtime notifikácie cez websocket,
+- ďalšie veci podľa času.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Technologický stack
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### Frontend
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+- React 19
+- TypeScript
+- Vite
+- + bežné FE tooling veci
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Backend
+
+- Node.js + Express
+- TypeScript
+- Prisma ORM
+- WebSocket (`ws`)
+- (error handling, validácie, middleware flow)
+
+### Infraštruktúra
+
+- Vercel (hosting frontendu)
+- Render (hosting backendu)
+- Supabase (PostgreSQL)
+- možno neskôr AWS, zatiaľ netreba
+
+## Prehľad architektúry
+
+```text
+client (React)
+   <->
+server (Express API)
+  routes -> controllers -> services -> Prisma -> PostgreSQL
+                  |            |
+                  |            -> business logika a prístup k dátam
+                  -> validácia, error handling, middleware
+   <->
+WebSocket kanál (/ws) pre real-time udalosti oznamov
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Pozn.: schéma je zjednodušená, doplní sa detailnejší flow.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Prečo PostgreSQL
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+Oznamy + kategórie sú pevne štruktúrované, preto relačný model dáva zmysel. PostgreSQL:
+
+- silnú konzistenciu pri CRUD operáciách,
+- efektívne filtrovanie a vyhľadávanie,
+- overené tooling + Prisma kompatibilita.
+
+MongoDB / DynamoDB boli zvažované, ale pre tento use case skôr extra komplexita navyše (indexy/query patterns/modeling rozdiely atď.). Relational fit je tu jednoducho lepší.
+
+## Dátový model (high-level)
+
+- `categories`: záznamy kategórií (`id`, `name`)
+- `announcements`: záznamy oznamov (... title, description, publicationDate, category väzby)
+- prípadné doplnenie atribútov neskôr
+
+## Návrh backendu
+
+Backend používa vrstvenú štruktúru (klasika pre tento typ API):
+
+- `routes`: definícia endpointov a napojenie validácie,
+- `controllers`: request/response orchestrace,
+- `services`: business logika + data access,
+- `middlewares`: prierezové funkcionality (validácia, chyby, bezpečnosť),
+- `utils`: helpery (async wrapper, logger, app error...).
+
+### Čo robí Express v tomto projekte
+
+Express je HTTP framework, ktorý rieši hlavne:
+
+- mapovanie requestov na endpointy (napr. `GET /api/announcements`),
+- vykonávanie middleware pipeline (`helmet`, `cors`, JSON parsing, logging),
+- request/response lifecycle,
+- error flow do centralizovaného handlera.
+
+TODO: doplniť jednoduchý diagram middleware poradia.
+
+### WebSocket prístup („hybridný“ model)
+
+Aplikácia ide cez hybridný model:
+
+- REST API pre CRUD + načítanie dát,
+- WebSocket hlavne na event notifikácie (`announcement.created`, ...).
+
+Takto ostáva backend jednoduchší a zároveň je real-time UX tam, kde treba.
+
+---
+
+## API prehľad
+
+### Health
+
+### Kategórie
+
+### Oznamy
+
+### Realtime
+
+## Bezpečnosť a validácia
+
+## Lokálny development setup
+
+## 1) Požiadavky
+
+## 2) Klonovanie a inštalácia závislostí
+
+## 3) Konfigurácia environment premenných
+
+## 4) Inicializácia schémy databázy a seed dát
+
+## 5) Spustenie aplikácie
+
+## Dostupné skripty
+
+### Root (frontend)
+
+### Server
+
+## Poznámky k nasadeniu
+
+## Praktické poznámky z implementácie
+
+### Bezpečnostné voľby
+
+### Prečo nie MongoDB alebo DynamoDB
+
+### Real-time prístup
